@@ -1,0 +1,20 @@
+name: Feature request
+description: Suggest an improvement to adk-kanode
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The use case or problem behind the request.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How you imagine it working, e.g. a new @kanode option or K8sPlugin setting.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "adk-kanode"
 version = "1.0.0"
-description = "ADK Workflow plugin and decorator (@kanode) for running workflow nodes in dedicated GKE/Kubernetes pods"
+description = "Run Google ADK (Agent Development Kit) workflow nodes in dedicated Kubernetes / GKE pods with a single @kanode decorator"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -13,16 +13,40 @@ dependencies = [
     "httpx>=0.27.0",
     "kubernetes>=30.1.0",
 ]
-keywords = ["adk", "google-adk", "agents", "workflow", "kubernetes", "gke"]
+keywords = [
+    "adk",
+    "google-adk",
+    "agent-development-kit",
+    "ai-agents",
+    "agents",
+    "llm",
+    "gemini",
+    "workflow",
+    "workflow-orchestration",
+    "kubernetes",
+    "k8s",
+    "gke",
+    "pods",
+    "distributed-computing",
+    "decorator",
+    "plugin",
+]
 classifiers = [
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Clustering",
     "Topic :: System :: Distributed Computing",
 ]
 
 [project.urls]
 Homepage = "https://github.com/benmizrahi/adk-kanode"
+Documentation = "https://github.com/benmizrahi/adk-kanode#readme"
+Architecture = "https://github.com/benmizrahi/adk-kanode/blob/main/docs/ARCHITECTURE.md"
 Repository = "https://github.com/benmizrahi/adk-kanode"
 Issues = "https://github.com/benmizrahi/adk-kanode/issues"
 

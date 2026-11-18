@@ -1,0 +1,44 @@
+name: Bug report
+description: Report a problem with adk-kanode
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the problem and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: The smallest @kanode node and Workflow that shows the problem.
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Traceback and worker logs
+      description: Full traceback, plus worker pod logs if relevant. Remove any secrets.
+      render: shell
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Execution mode
+      options:
+        - deployment
+        - pod
+        - SubprocessPodExecutor (local)
+        - InProcessPodExecutor (local)
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: adk-kanode, google-adk, Python and Kubernetes / GKE versions.
+      placeholder: adk-kanode 1.0.0, google-adk 2.14.1, Python 3.12, GKE 1.33
+    validations:
+      required: true

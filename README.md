@@ -2,18 +2,20 @@
 
 # adk-kanode
 
-**Run ADK Workflow nodes in their own Kubernetes pods with a single decorator.**
+**Run Google ADK Workflow nodes in their own Kubernetes pods with a single decorator.**
 
-![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)
-![Google ADK](https://img.shields.io/badge/Google%20ADK-2.x-4285F4?logo=google&logoColor=white)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-GKE-326CE5?logo=kubernetes&logoColor=white)
+[![Tests](https://github.com/benmizrahi/adk-kanode/actions/workflows/tests.yml/badge.svg)](https://github.com/benmizrahi/adk-kanode/actions/workflows/tests.yml)
+[![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Google ADK](https://img.shields.io/badge/Google%20ADK-2.x-4285F4?logo=google&logoColor=white)](https://google.github.io/adk-docs/)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-GKE-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 
 </div>
 
-`adk-kanode` is an [ADK](https://google.github.io/adk-docs/) Workflow plugin and node
-decorator (`@kanode` / `@k8s_node`). It extracts a node's implementation and executes
-it inside a dedicated GKE / Kubernetes workload, while the workflow graph itself stays
-plain ADK.
+`adk-kanode` is a Python library for the
+[Google Agent Development Kit (ADK)](https://google.github.io/adk-docs/): a Workflow
+plugin and node decorator (`@kanode` / `@k8s_node`) for running AI agent workflow
+nodes on Kubernetes. It extracts a node's implementation and executes it inside a
+dedicated GKE / Kubernetes workload, while the workflow graph itself stays plain ADK.
 
 ```python
 @kanode
@@ -24,6 +26,7 @@ def analyze(node_input: list[str]) -> Event:
 
 ## Contents
 
+- [Why adk-kanode](#why-adk-kanode)
 - [Features](#features)
 - [How it works](#how-it-works)
 - [Installation](#installation)
@@ -33,7 +36,22 @@ def analyze(node_input: list[str]) -> Event:
 - [Running without a cluster](#running-without-a-cluster)
 - [Example: log analyzer on GKE](#example-log-analyzer-on-gke)
 - [Development](#development)
+- [Contributing](#contributing)
 - [Disclaimer](#disclaimer)
+
+## Why adk-kanode
+
+By default every node of an ADK Workflow runs in the same process as the workflow
+host. `adk-kanode` lets you move individual nodes onto Kubernetes without changing
+the graph:
+
+- **Per-node resources**: give a heavy node its own CPU / memory limits, container
+  image, node selector and replica count.
+- **Per-node credentials**: attach a ServiceAccount and Kubernetes Secrets to just
+  the node that needs them.
+- **Isolation**: run a node in a fresh single-use pod per call (`mode="pod"`).
+- **No extra packaging**: no per-node images or entrypoint scripts; the node's
+  source is shipped to a generic worker image.
 
 ## Features
 
@@ -240,6 +258,12 @@ uv run pytest    # run the tests
 | [`src/adk_kanode/executor.py`](src/adk_kanode/executor.py) | Pod, subprocess and in-process executors |
 | [`src/adk_kanode/deployment_executor.py`](src/adk_kanode/deployment_executor.py) | Warm Deployment executor |
 | [`example/`](example/) | Log analyzer workflow, Dockerfile and manifests |
+
+## Contributing
+
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the
+development setup, or open an issue at
+<https://github.com/benmizrahi/adk-kanode/issues>.
 
 ## Disclaimer
 

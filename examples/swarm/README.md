@@ -7,6 +7,11 @@ its own Kubernetes worker, and a lead agent turns their findings into one
 brief. The brief, every finding with its sources, and the timings are saved as
 a Markdown artifact.
 
+![One swarm request: the planner splits the question, twelve investigator pods start, run and are deleted, the lead writes the brief, and the report artifact is saved](../../docs/assets/swarm-demo.gif)
+
+*An illustration of one request with one pod per assignment, not a recording.
+The numbers are made up.*
+
 ```mermaid
 flowchart LR
     START([Question]) --> Q["capture_request"]

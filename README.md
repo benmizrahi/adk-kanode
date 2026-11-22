@@ -8,6 +8,7 @@
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Google ADK](https://img.shields.io/badge/Google%20ADK-2.x-4285F4?logo=google&logoColor=white)](https://google.github.io/adk-docs/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-GKE-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 
 </div>
 
@@ -38,6 +39,7 @@ def analyze(node_input: list[str]) -> Event:
 - [Examples](#examples)
 - [Development](#development)
 - [Contributing](#contributing)
+- [License](#license)
 - [Disclaimer](#disclaimer)
 
 ## Why adk-kanode
@@ -393,6 +395,10 @@ uv run pytest    # run the tests
 Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the
 development setup, or open an issue at
 <https://github.com/benmizrahi/adk-kanode/issues>.
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE).
 
 ## Disclaimer
 

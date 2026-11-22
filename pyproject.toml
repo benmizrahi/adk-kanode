@@ -7,6 +7,8 @@ name = "adk-kanode"
 version = "1.0.0"
 description = "Run Google ADK (Agent Development Kit) workflow nodes in dedicated Kubernetes / GKE pods with a single @kanode decorator"
 readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = [
     "google-adk>=2.14.1",

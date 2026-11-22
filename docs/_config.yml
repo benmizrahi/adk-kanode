@@ -1,6 +1,6 @@
 # GitHub Pages site, built by GitHub from the docs/ folder of the main branch.
 title: adk-kanode
-tagline: Run Google ADK workflow nodes in their own Kubernetes pods
+tagline: Run Google ADK Workflow nodes and agents in their own Kubernetes pods, with one decorator.
 description: >-
   adk-kanode is a Python plugin for the Google Agent Development Kit (ADK). One
   @kanode decorator runs an ADK Workflow node or agent in its own Kubernetes /
@@ -12,10 +12,8 @@ author:
   name: Ben Mizrahi
   url: https://github.com/benmizrahi
 
-theme: jekyll-theme-cayman
-show_downloads: false
-github:
-  repository_url: https://github.com/benmizrahi/adk-kanode
+# The page uses its own layout and stylesheet (docs/_layouts, docs/assets/css).
+repo_url: https://github.com/benmizrahi/adk-kanode
 
 plugins:
   - jekyll-seo-tag

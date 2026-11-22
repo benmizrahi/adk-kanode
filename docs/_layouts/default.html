@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: 'en' }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#0b0f17">
+    {% seo %}
+    <link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}">
+  </head>
+  <body>
+    <header class="hero">
+      <div class="wrap">
+        <p class="eyebrow">Google ADK &middot; Kubernetes &middot; GKE Sandbox</p>
+        <h1 class="hero-title">{{ site.title }}</h1>
+        <p class="hero-tagline">{{ site.tagline }}</p>
+        <div class="hero-install"><span class="prompt">$</span> <code>pip install adk-kanode</code></div>
+        <nav class="hero-links" aria-label="Project links">
+          <a class="btn btn-primary" href="{{ site.repo_url }}">GitHub</a>
+          <a class="btn" href="https://pypi.org/project/adk-kanode/">PyPI</a>
+          <a class="btn" href="{{ site.repo_url }}#readme">README</a>
+          <a class="btn" href="{{ site.repo_url }}/tree/main/examples">Examples</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="wrap content">
+      {{ content }}
+    </main>
+
+    <footer class="footer">
+      <div class="wrap">
+        <a href="{{ site.repo_url }}">adk-kanode</a> is open source under the Apache 2.0 license.
+        Not an officially supported Google product.
+      </div>
+    </footer>
+  </body>
+</html>

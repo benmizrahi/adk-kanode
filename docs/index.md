@@ -7,15 +7,12 @@ description: >-
   including gVisor pods on GKE Sandbox.
 ---
 
-# adk-kanode
-
-**Run Google ADK Workflow nodes in their own Kubernetes pods with a single decorator.**
-
 `adk-kanode` is a Python library for the
 [Google Agent Development Kit (ADK)](https://google.github.io/adk-docs/). It adds
 a Workflow plugin and a node decorator, `@kanode`, that take one node of an ADK
 Workflow and run it in a dedicated Kubernetes / GKE workload. The workflow graph
 itself stays plain ADK.
+{: .lead }
 
 ```python
 from google.adk.agents import Agent
@@ -41,10 +38,6 @@ root_agent = Workflow(
 
 app = App(name="quickstart", root_agent=root_agent, plugins=[K8sPlugin()])
 ```
-
-[View on GitHub](https://github.com/benmizrahi/adk-kanode){: .btn }
-[Read the README](https://github.com/benmizrahi/adk-kanode#readme){: .btn }
-[PyPI](https://pypi.org/project/adk-kanode/){: .btn }
 
 ## Install
 

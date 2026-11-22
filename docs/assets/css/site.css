@@ -1,0 +1,303 @@
+:root {
+  --bg: #0b0f17;
+  --surface: #121824;
+  --surface-2: #182030;
+  --border: #263044;
+  --text: #e6ebf2;
+  --muted: #9aa7b8;
+  --accent: #6ea8fe;
+  --accent-strong: #3b82f6;
+  --code: #c9d7ea;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Header */
+
+.hero {
+  background:
+    radial-gradient(900px 320px at 15% -10%, rgba(59, 130, 246, 0.22), transparent 70%),
+    radial-gradient(700px 300px at 95% 0%, rgba(52, 168, 83, 0.12), transparent 70%),
+    #080b12;
+  border-bottom: 1px solid var(--border);
+  padding: 72px 0 60px;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero-title {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(2.4rem, 7vw, 3.6rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.hero-tagline {
+  margin: 16px 0 0;
+  max-width: 38rem;
+  color: #b9c4d4;
+  font-size: clamp(1.05rem, 2.6vw, 1.3rem);
+  line-height: 1.5;
+}
+
+.hero-install {
+  display: inline-block;
+  margin: 28px 0 0;
+  padding: 10px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.95rem;
+}
+
+.hero-install .prompt {
+  color: var(--muted);
+  user-select: none;
+}
+
+.hero-install code {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--text);
+}
+
+.hero-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.btn {
+  display: inline-block;
+  padding: 9px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.btn:hover {
+  background: var(--surface-2);
+  border-color: #3a4864;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: #2f6fe0;
+  border-color: #2f6fe0;
+}
+
+/* Content */
+
+.content {
+  padding-top: 40px;
+  padding-bottom: 64px;
+}
+
+.content h2 {
+  margin: 48px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  color: #ffffff;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+}
+
+.content h2:first-child {
+  margin-top: 0;
+}
+
+.content h3 {
+  margin: 32px 0 10px;
+  color: #ffffff;
+  font-size: 1.15rem;
+}
+
+.content p,
+.content ul,
+.content ol {
+  margin: 0 0 16px;
+}
+
+.content strong {
+  color: #ffffff;
+}
+
+.lead {
+  color: #c6d0de;
+  font-size: 1.1rem;
+}
+
+code {
+  padding: 0.15em 0.4em;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--code);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+}
+
+pre {
+  margin: 0 0 20px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  line-height: 1.5;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--code);
+  font-size: 0.875rem;
+}
+
+table {
+  display: block;
+  width: 100%;
+  margin: 0 0 20px;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: var(--surface-2);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+td {
+  background: var(--surface);
+}
+
+/* An empty header row (used for two-column feature tables) is hidden. */
+thead th:empty {
+  display: none;
+}
+
+/* Syntax highlighting (Rouge) */
+
+.highlight .c,
+.highlight .c1,
+.highlight .cm,
+.highlight .cp {
+  color: #7f8ea3;
+  font-style: italic;
+}
+
+.highlight .k,
+.highlight .kn,
+.highlight .kd,
+.highlight .kc,
+.highlight .ow {
+  color: #ff9d76;
+}
+
+.highlight .s,
+.highlight .s1,
+.highlight .s2,
+.highlight .sd,
+.highlight .se {
+  color: #a5d6a7;
+}
+
+.highlight .nf,
+.highlight .nc,
+.highlight .nd,
+.highlight .fm {
+  color: #8ab4f8;
+}
+
+.highlight .nn,
+.highlight .nb,
+.highlight .bp {
+  color: #d2b8ff;
+}
+
+.highlight .m,
+.highlight .mi,
+.highlight .mf {
+  color: #f6c177;
+}
+
+/* Footer */
+
+.footer {
+  padding: 28px 0 40px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  .hero {
+    padding: 48px 0 40px;
+  }
+
+  .wrap {
+    padding: 0 18px;
+  }
+}

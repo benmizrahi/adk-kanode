@@ -5,6 +5,7 @@
 **Run Google ADK Workflow nodes in their own Kubernetes pods with a single decorator.**
 
 [![Tests](https://github.com/benmizrahi/adk-kanode/actions/workflows/tests.yml/badge.svg)](https://github.com/benmizrahi/adk-kanode/actions/workflows/tests.yml)
+[![PyPI](https://img.shields.io/pypi/v/adk-kanode)](https://pypi.org/project/adk-kanode/)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Google ADK](https://img.shields.io/badge/Google%20ADK-2.x-4285F4?logo=google&logoColor=white)](https://google.github.io/adk-docs/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-GKE-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
@@ -93,13 +94,13 @@ updates and the security model), see [docs/ARCHITECTURE.md](https://github.com/b
 Requires Python 3.12+.
 
 ```bash
-pip install "git+https://github.com/benmizrahi/adk-kanode.git"
+pip install adk-kanode
 ```
 
 Or with [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uv add "git+https://github.com/benmizrahi/adk-kanode.git"
+uv add adk-kanode
 ```
 
 ## Quick start

@@ -44,13 +44,14 @@ app = App(name="quickstart", root_agent=root_agent, plugins=[K8sPlugin()])
 
 [View on GitHub](https://github.com/benmizrahi/adk-kanode){: .btn }
 [Read the README](https://github.com/benmizrahi/adk-kanode#readme){: .btn }
+[PyPI](https://pypi.org/project/adk-kanode/){: .btn }
 
 ## Install
 
 Requires Python 3.12+.
 
 ```bash
-pip install "git+https://github.com/benmizrahi/adk-kanode.git"
+pip install adk-kanode
 ```
 
 ## What it gives you

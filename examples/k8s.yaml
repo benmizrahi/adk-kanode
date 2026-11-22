@@ -1,9 +1,6 @@
-# Deploy to an existing GKE cluster:
-#   export ADK_K8S_IMAGE="us-docker.pkg.dev/<PROJECT_ID>/<REPO>/adk-kanode-example:latest"
-#   export ADK_K8S_NAMESPACE="default"
-#   docker build --network=host -f example/Dockerfile -t "$ADK_K8S_IMAGE" .
-#   docker push "$ADK_K8S_IMAGE"
-#   envsubst < example/k8s.yaml | kubectl apply -f -
+# Workflow host for the examples: ServiceAccounts, RBAC, and an `adk web` Deployment.
+# Build and push the image first (see the example's README), then:
+#   envsubst < examples/k8s.yaml | kubectl apply -f -
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -104,7 +101,7 @@ spec:
             # "deployment" (warm worker per node, fast) or "pod" (fresh pod per call)
             - name: ADK_K8S_MODE
               value: "deployment"
-            # Gemini via Vertex AI for the LLM node (forwarded to its worker by example/agent.py).
+            # Gemini via Vertex AI, for examples with LLM nodes (the example forwards these to its workers).
             # The worker authenticates with Workload Identity as adk-worker-sa.
             - name: GOOGLE_GENAI_USE_VERTEXAI
               value: "TRUE"

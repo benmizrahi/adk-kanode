@@ -1,5 +1,5 @@
 # Build from repository root (use --network=host so uv can reach local airlock-proxy):
-#   docker build --network=host -f example/Dockerfile -t "$ADK_K8S_IMAGE" .
+#   docker build --network=host -f examples/Dockerfile -t "$ADK_K8S_IMAGE" .
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
 WORKDIR /app
@@ -18,8 +18,12 @@ COPY --chown=appuser:appuser src/ /app/src/
 RUN uv sync --frozen --no-dev --compile-bytecode \
     && chmod -R a+rX /app/src
 
-# Copy the example agent into /app/agents/example so `adk web /app/agents` discovers it
-COPY --chown=appuser:appuser example/ /app/agents/example/
+# Copy one example into /app/agents/<name> so `adk web /app/agents` discovers it.
+# Defaults to the quickstart; override both args to package another example, e.g.
+#   --build-arg AGENT_SRC=examples/gke-sandbox/code_interpreter --build-arg AGENT_NAME=code_interpreter
+ARG AGENT_SRC=examples/quickstart
+ARG AGENT_NAME=quickstart
+COPY --chown=appuser:appuser ${AGENT_SRC}/ /app/agents/${AGENT_NAME}/
 RUN chmod -R a+rX /app/agents
 
 USER appuser

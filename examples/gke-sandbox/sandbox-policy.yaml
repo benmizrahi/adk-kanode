@@ -1,0 +1,28 @@
+# Identity and network boundary for the sandbox pods.
+#   envsubst < examples/gke-sandbox/sandbox-policy.yaml | kubectl apply -f -
+---
+# Sandbox pods run as this account. It has no RBAC bindings, no IAM bindings
+# (no Workload Identity), and its token is not mounted into the pod.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: adk-sandbox-sa
+  namespace: ${ADK_K8S_NAMESPACE}
+automountServiceAccountToken: false
+---
+# Sandbox pods need no network at all: in pod mode the input arrives in the pod
+# spec and the result leaves through the pod log. So deny everything, including
+# DNS and the metadata server. Requires network policy enforcement on the
+# cluster (always on with GKE Dataplane V2 and Autopilot).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: adk-sandbox-deny-all
+  namespace: ${ADK_K8S_NAMESPACE}
+spec:
+  podSelector:
+    matchLabels:
+      trust-zone: sandbox
+  policyTypes:
+    - Ingress
+    - Egress

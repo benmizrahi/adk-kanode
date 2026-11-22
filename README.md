@@ -33,8 +33,9 @@ def analyze(node_input: list[str]) -> Event:
 - [Quick start](#quick-start)
 - [Execution modes](#execution-modes)
 - [Configuration](#configuration)
+- [Sandboxing nodes with GKE Sandbox](#sandboxing-nodes-with-gke-sandbox)
 - [Running without a cluster](#running-without-a-cluster)
-- [Example: log analyzer on GKE](#example-log-analyzer-on-gke)
+- [Examples](#examples)
 - [Development](#development)
 - [Contributing](#contributing)
 - [Disclaimer](#disclaimer)
@@ -49,7 +50,8 @@ the graph:
   image, node selector and replica count.
 - **Per-node credentials**: attach a ServiceAccount and Kubernetes Secrets to just
   the node that needs them.
-- **Isolation**: run a node in a fresh single-use pod per call (`mode="pod"`).
+- **Isolation**: run a node in a fresh single-use pod per call (`mode="pod"`), and
+  optionally inside [GKE Sandbox](#sandboxing-nodes-with-gke-sandbox) (gVisor).
 - **No extra packaging**: no per-node images or entrypoint scripts; the node's
   source is shipped to a generic worker image.
 
@@ -153,7 +155,7 @@ In deployment mode:
   `kubectl delete deploy,svc -l app.kubernetes.io/managed-by=adk-kanode`.
 - The workflow host must run inside the cluster; otherwise nodes fall back to `pod` mode.
 - The host needs RBAC for `deployments`, `services` and the `adk-kanode-worker-token`
-  Secret (the bearer token workers require). See `example/k8s.yaml`.
+  Secret (the bearer token workers require). See `examples/k8s.yaml`.
 - A worker process is shared by concurrent calls. A node that blocks on CPU-heavy
   synchronous code delays other calls on that replica; raise `replicas` for those.
 
@@ -194,6 +196,109 @@ Kubernetes Secrets, rather than `env`.
 
 Each `ADK_K8S_*` variable also accepts a `K8S_*` alias (for example `K8S_IMAGE`).
 
+## Sandboxing nodes with GKE Sandbox
+
+[GKE Sandbox](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/sandbox-pods)
+runs a pod under [gVisor](https://gvisor.dev/), a userspace kernel that sits
+between the container and the host kernel. A pod opts in with
+`runtimeClassName: gvisor`. `adk-kanode` writes that field into the worker's pod
+spec from the `runtime_class_name` option, so sandboxing becomes a per-node
+decision made in the workflow code:
+
+```python
+@kanode(
+    mode="pod",                    # fresh pod, and so a fresh sandbox, per call
+    runtime_class_name="gvisor",   # becomes spec.runtimeClassName on the worker pod
+    node_selector={"cloud.google.com/compute-class": "sandbox-gvisor-class"},
+)
+def run_untrusted(node_input: str) -> Event:
+    """Runs inside a gVisor sandbox."""
+    ...
+
+
+@kanode                            # no runtime class: a regular worker
+def summarize(node_input: dict) -> Event: ...
+```
+
+```mermaid
+flowchart LR
+    subgraph regular["Regular node pool"]
+        H["Workflow host + K8sPlugin"]
+        D["@kanode worker (default runtime)"]
+    end
+
+    subgraph sandbox["GKE Sandbox node pool"]
+        subgraph gv["gVisor sandbox"]
+            P["@kanode worker (runtime_class_name='gvisor')"]
+        end
+    end
+
+    H -- "pod spec with runtimeClassName: gvisor" --> P
+    H -- "pod spec without a runtime class" --> D
+    P -- "events" --> H
+    D -- "events" --> H
+```
+
+The two fit together because of what each one controls:
+
+| | `adk-kanode` | GKE Sandbox |
+| --- | --- | --- |
+| Decides | Which workflow nodes leave the host process, and with what pod spec | How a pod that asks for `gvisor` is run |
+| Unit | One `@kanode` node | One pod |
+| Isolates | The node from the workflow host and from other nodes | The pod from the host kernel and from other pods on that machine |
+
+Typical candidates are nodes that handle input you do not control: user-uploaded
+content, code written by a model, or third-party tools. Nodes that need features
+GKE Sandbox does not support can stay on the default runtime in the same workflow.
+
+### Setup
+
+1. **Provide sandbox nodes.** Either create a node pool with
+   `gcloud container node-pools create ... --sandbox type=gvisor`, or let GKE
+   create nodes on demand with a ComputeClass such as
+   [`examples/gke-sandbox/gVisor.yaml`](examples/gke-sandbox/gVisor.yaml):
+
+   ```bash
+   kubectl apply -f examples/gke-sandbox/gVisor.yaml
+   kubectl get runtimeclass gvisor
+   ```
+
+2. **Ask for the sandbox.** Set `runtime_class_name="gvisor"` on a node as above.
+   To sandbox every worker instead, set it once on the plugin or in the
+   environment; a node can still override it:
+
+   ```python
+   K8sPlugin(runtime_class_name="gvisor")   # or ADK_K8S_RUNTIME_CLASS_NAME=gvisor
+   ```
+
+   With the ComputeClass route, also pass the `node_selector` shown above so the
+   pod lands on nodes of that class. `node_selector` is set in code only.
+
+3. **Check it.** Sandboxing is a property of the pod spec, so read it from the API
+   rather than from inside the container:
+
+   ```bash
+   kubectl get pods -l app.kubernetes.io/managed-by=adk-kanode \
+     -o custom-columns=NAME:.metadata.name,RUNTIME:.spec.runtimeClassName,NODE:.spec.nodeName
+   ```
+
+   One-shot pods are deleted when they finish. Set `ADK_K8S_CLEANUP_POD=false`
+   to keep them around for inspection.
+
+### Things to know
+
+- `runtime_class_name` works in both modes. In `pod` mode every call gets a new
+  sandbox. In `deployment` mode a warm worker keeps one sandbox across calls, and
+  changing the option rolls the Deployment.
+- The workflow host does not need to be sandboxed, and in the
+  [GKE Sandbox example](examples/gke-sandbox/) it is not.
+- The first call to a sandboxed node can wait for GKE to create a node. Raise
+  `pod_startup_timeout` if node creation takes longer than the default 300 seconds.
+- gVisor adds overhead to system calls and does not support every pod feature. See
+  the [GKE Sandbox limitations](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/sandbox-pods)
+  before sandboxing a node that needs Google Cloud credentials, GPUs or host access.
+- Any RuntimeClass name is accepted, not only `gvisor`.
+
 ## Running without a cluster
 
 Two executors run nodes locally, which is useful for development and tests:
@@ -211,37 +316,60 @@ plugin = K8sPlugin(executor=SubprocessPodExecutor())
 
 An executor can also be set on a single node with `@kanode(executor=...)`.
 
-## Example: log analyzer on GKE
+## Examples
 
-[`example/agent.py`](example/agent.py) is a log-analysis workflow that fans out to
-two parallel workers, joins their results, and hands a typed report to a Gemini agent.
+| Example | What it shows |
+| --- | --- |
+| [`examples/quickstart/`](examples/quickstart/) | One function node and one Gemini agent, each in its own worker. No extra options. Start here. |
+| [`examples/gke-sandbox/`](examples/gke-sandbox/) | A code interpreter: Gemini writes Python, and a single-use [GKE Sandbox](#sandboxing-nodes-with-gke-sandbox) pod with no credentials and no network runs it. |
+| [`examples/swarm/`](examples/swarm/) | A dynamic agent swarm: a planner picks specialist agents per request, and `ctx.run_node` runs each one in its own worker. |
 
-```mermaid
-flowchart LR
-    START([START]) --> A["parse_logs_input"]
-    A --> B["analyze_error_rates"]
-    A --> C["analyze_latency"]
-    B --> J["join_analysis"]
-    C --> J
-    J --> R["build_incident_report"]
-    R --> L["incident_advisor (Gemini)"]
+The quickstart is one small file:
+
+```python
+@kanode
+def count_levels(node_input: str) -> Event: ...
+
+advisor = kanode(Agent(name="advisor", model="gemini-2.5-flash", instruction="..."))
+
+root_agent = Workflow(
+    name="quickstart_workflow",
+    edges=[("START", count_levels, advisor)],
+)
 ```
 
 Deploy it to an existing GKE cluster:
 
 ```bash
-export ADK_K8S_IMAGE="us-docker.pkg.dev/<PROJECT_ID>/<REPO>/adk-kanode-example:latest"
+export ADK_K8S_IMAGE="us-docker.pkg.dev/<PROJECT_ID>/<REPO>/adk-kanode-quickstart:latest"
 export ADK_K8S_NAMESPACE="default"
 export GOOGLE_CLOUD_PROJECT="<PROJECT_ID>"
 export GOOGLE_CLOUD_LOCATION="<LOCATION>"
 
-docker build --network=host -f example/Dockerfile -t "$ADK_K8S_IMAGE" .
+docker build --network=host -f examples/Dockerfile -t "$ADK_K8S_IMAGE" .
 docker push "$ADK_K8S_IMAGE"
-envsubst < example/k8s.yaml | kubectl apply -f -
+envsubst < examples/k8s.yaml | kubectl apply -f -
 ```
 
-[`example/k8s.yaml`](example/k8s.yaml) creates the ServiceAccounts, the RBAC role,
+[`examples/k8s.yaml`](examples/k8s.yaml) creates the ServiceAccounts, the RBAC role,
 and an `adk web` Deployment exposed through a `LoadBalancer` Service.
+
+The sandbox example changes one node of its workflow:
+
+```python
+@kanode(mode="pod", runtime_class_name="gvisor", service_account_name="adk-sandbox-sa")
+def run_in_sandbox(node_input: dict) -> Event: ...
+```
+
+The swarm example starts agents that are not in the graph, chosen at runtime:
+
+```python
+reports = await asyncio.gather(
+    *(ctx.run_node(SPECIALISTS[a.specialist], a.task) for a in assignments)
+)
+```
+
+Each example's README has the full walkthrough.
 
 ## Development
 
@@ -258,7 +386,7 @@ uv run pytest    # run the tests
 | [`src/adk_kanode/extractor.py`](src/adk_kanode/extractor.py) | Source extraction for wrapped nodes |
 | [`src/adk_kanode/executor.py`](src/adk_kanode/executor.py) | Pod, subprocess and in-process executors |
 | [`src/adk_kanode/deployment_executor.py`](src/adk_kanode/deployment_executor.py) | Warm Deployment executor |
-| [`example/`](example/) | Log analyzer workflow, Dockerfile and manifests |
+| [`examples/`](examples/) | Quickstart, GKE Sandbox and agent swarm examples, Dockerfile and manifests |
 
 ## Contributing
 

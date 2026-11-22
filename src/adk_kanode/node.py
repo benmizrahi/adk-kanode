@@ -4,12 +4,15 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 from collections.abc import Callable
+import inspect
 from typing import Any
+from typing import get_type_hints
 from typing import Literal
 from typing import overload
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
+from google.adk.agents.base_agent import BaseAgent
 from google.adk.workflow._base_node import BaseNode
 from google.adk.workflow._errors import WorkflowConfigurationError
 from google.adk.workflow._function_node import FunctionNode
@@ -265,6 +268,29 @@ def k8s_node(
     ...
 
 
+def _resolve_agent_factory(node_like: Any) -> Any:
+    """Lets ``@kanode`` decorate a function that builds an agent.
+
+    A function with no parameters whose return annotation is a ``BaseAgent``
+    subclass is called once, and the agent it returns becomes the node:
+
+        >>> @kanode(env={"GOOGLE_GENAI_USE_VERTEXAI": "TRUE"})
+        ... def advisor() -> Agent:
+        ...     return Agent(name="advisor", model="gemini-2.5-flash", instruction="...")
+
+    Anything else is returned unchanged.
+    """
+    if not inspect.isfunction(node_like) or inspect.signature(node_like).parameters:
+        return node_like
+    try:
+        returns = get_type_hints(node_like).get("return")
+    except Exception:  # noqa: BLE001 - unresolvable annotations: treat as a plain function node
+        return node_like
+    if isinstance(returns, type) and issubclass(returns, BaseAgent):
+        return node_like()
+    return node_like
+
+
 def k8s_node(
     node_like: NodeLike | None = None,
     *,
@@ -369,6 +395,8 @@ def k8s_node(
         raise WorkflowConfigurationError(
             "START sentinel node cannot be wrapped in a K8sNode."
         )
+
+    node_like = _resolve_agent_factory(node_like)
 
     # Build the underlying ADK BaseNode using ADK's standard build_node
     built_inner = build_node(

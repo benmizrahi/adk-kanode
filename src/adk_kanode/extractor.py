@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 from collections.abc import Callable
 import inspect
+import sys
 import textwrap
 from typing import Any
 from typing import Literal
@@ -137,6 +138,36 @@ def _extract_module_preamble(obj: Any, exclude_name: str | None = None) -> str:
     return ast.unparse(preamble_mod)
 
 
+def _tool_reference(agent_name: str, tool: Any) -> dict[str, str]:
+    """Returns where the worker can import one of an agent's tools from.
+
+    An agent is rebuilt in its worker from plain configuration, so a tool has to be
+    importable there: a module-level function, or a module-level tool object such
+    as ADK's built-in ``google_search``.
+    """
+    if inspect.isfunction(tool):
+        module_name, attr = tool.__module__, tool.__qualname__
+    else:
+        module_name, attr = type(tool).__module__, ""
+        for candidate, value in vars(sys.modules.get(module_name)).items():
+            if value is tool:
+                attr = candidate
+                break
+    importable = (
+        bool(attr)
+        and "<locals>" not in attr
+        and module_name != "__main__"
+        and getattr(sys.modules.get(module_name), attr, None) is tool
+    )
+    if not importable:
+        raise ValueError(
+            f"Agent {agent_name!r} has a tool that its worker cannot import: {tool!r}. "
+            "Use a module-level function or a module-level tool object such as "
+            "google.adk.tools.google_search."
+        )
+    return {"module": module_name, "name": attr}
+
+
 def _extract_callable_impl(
     func: Callable[..., Any],
     *,
@@ -255,6 +286,10 @@ def extract_node_implementation(
             "disallow_transfer_to_parent": built_node.disallow_transfer_to_parent,
             "disallow_transfer_to_peers": built_node.disallow_transfer_to_peers,
         }
+        if built_node.tools:
+            config["tools"] = [
+                _tool_reference(built_node.name, tool) for tool in built_node.tools
+            ]
         preamble = ""
         if built_node.output_schema is not None and inspect.isclass(
             built_node.output_schema

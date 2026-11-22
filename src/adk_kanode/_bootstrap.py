@@ -79,6 +79,17 @@ def _compile_extracted(extracted):
     src = "\n\n".join(parts).strip()
     tree = ast.parse(src, filename="<k8s_node>")
     exec(compile(tree, filename="<k8s_node>", mode="exec"), ns)
+    # The source module uses postponed annotations, and these classes do not live in a
+    # real module, so a model that refers to another one (list[Assignment]) cannot
+    # resolve it on its own. Resolve those references against this namespace.
+    for value in list(ns.values()):
+        if (
+            inspect.isclass(value)
+            and issubclass(value, BaseModel)
+            and value is not BaseModel
+            and not value.__pydantic_complete__
+        ):
+            value.model_rebuild(raise_errors=False, _types_namespace=ns)
     fn = extracted.get("func_name")
     return ns[fn] if fn and fn in ns else ns
 
@@ -105,6 +116,15 @@ def _reconstruct(extracted):
             ns = _compile_extracted(extracted)
             if isinstance(ns, dict) and schema_name in ns:
                 output_schema = ns[schema_name]
+        tools = []
+        for ref in cfg.get("tools") or []:
+            tool = _try_import(ref["module"], ref["name"])
+            if tool is None:
+                raise RuntimeError(
+                    "Cannot import tool %s.%s for agent %r in the worker image."
+                    % (ref["module"], ref["name"], name)
+                )
+            tools.append(tool)
         agent = LlmAgent(
             name=cfg.get("name", name),
             model=cfg.get("model", "gemini-2.5-flash"),
@@ -112,6 +132,7 @@ def _reconstruct(extracted):
             description=cfg.get("description", ""),
             output_key=cfg.get("output_key"),
             output_schema=output_schema,
+            tools=tools,
             include_contents=cfg.get("include_contents", "default"),
             mode=cfg.get("mode"),
             disallow_transfer_to_parent=cfg.get("disallow_transfer_to_parent", False),

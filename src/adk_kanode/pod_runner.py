@@ -128,6 +128,18 @@ def _compile_from_extracted_source(extracted: ExtractedImplementation) -> Any:
     code_obj = compile(parsed_ast, filename=f"<k8s_node:{extracted.name}>", mode="exec")
     exec(code_obj, namespace)  # noqa: S102 - Executes AST-verified node source extracted by the host workflow
 
+    # The source module uses postponed annotations, and these classes do not live in a
+    # real module, so a model that refers to another one (list[Assignment]) cannot
+    # resolve it on its own. Resolve those references against this namespace.
+    for value in list(namespace.values()):
+        if (
+            inspect.isclass(value)
+            and issubclass(value, BaseModel)
+            and value is not BaseModel
+            and not value.__pydantic_complete__
+        ):
+            value.model_rebuild(raise_errors=False, _types_namespace=namespace)
+
     if extracted.func_name and extracted.func_name in namespace:
         return namespace[extracted.func_name]
     return namespace
@@ -163,6 +175,15 @@ def reconstruct_node(extracted: ExtractedImplementation) -> BaseNode:
             ns = _compile_from_extracted_source(extracted)
             if isinstance(ns, dict) and schema_name in ns:
                 output_schema = ns[schema_name]
+        tools: list[Any] = []
+        for ref in cfg.get("tools") or []:
+            tool = _try_import_symbol(ref["module"], ref["name"])
+            if tool is None:
+                raise RuntimeError(
+                    f"Cannot import tool {ref['module']}.{ref['name']} for agent "
+                    f"{extracted.name!r} in the worker image."
+                )
+            tools.append(tool)
         agent = LlmAgent(
             name=cfg.get("name", extracted.name),
             model=cfg.get("model", "gemini-2.5-flash"),
@@ -170,6 +191,7 @@ def reconstruct_node(extracted: ExtractedImplementation) -> BaseNode:
             description=cfg.get("description", ""),
             output_key=cfg.get("output_key"),
             output_schema=output_schema,
+            tools=tools,
             include_contents=cfg.get("include_contents", "default"),
             mode=cfg.get("mode"),
             disallow_transfer_to_parent=cfg.get(

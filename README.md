@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Google ADK](https://img.shields.io/badge/Google%20ADK-2.x-4285F4?logo=google&logoColor=white)](https://google.github.io/adk-docs/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-GKE-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](https://github.com/benmizrahi/adk-kanode/blob/main/LICENSE)
 
 </div>
 
@@ -86,7 +86,7 @@ flowchart LR
 3. The worker runs the original implementation and returns its ADK events to the workflow.
 
 For the full technical details (source extraction, the worker protocol, rolling
-updates and the security model), see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+updates and the security model), see [docs/ARCHITECTURE.md](https://github.com/benmizrahi/adk-kanode/blob/main/docs/ARCHITECTURE.md).
 
 ## Installation
 
@@ -258,7 +258,7 @@ GKE Sandbox does not support can stay on the default runtime in the same workflo
 1. **Provide sandbox nodes.** Either create a node pool with
    `gcloud container node-pools create ... --sandbox type=gvisor`, or let GKE
    create nodes on demand with a ComputeClass such as
-   [`examples/gke-sandbox/gVisor.yaml`](examples/gke-sandbox/gVisor.yaml):
+   [`examples/gke-sandbox/gVisor.yaml`](https://github.com/benmizrahi/adk-kanode/blob/main/examples/gke-sandbox/gVisor.yaml):
 
    ```bash
    kubectl apply -f examples/gke-sandbox/gVisor.yaml
@@ -293,7 +293,7 @@ GKE Sandbox does not support can stay on the default runtime in the same workflo
   sandbox. In `deployment` mode a warm worker keeps one sandbox across calls, and
   changing the option rolls the Deployment.
 - The workflow host does not need to be sandboxed, and in the
-  [GKE Sandbox example](examples/gke-sandbox/) it is not.
+  [GKE Sandbox example](https://github.com/benmizrahi/adk-kanode/tree/main/examples/gke-sandbox/) it is not.
 - The first call to a sandboxed node can wait for GKE to create a node. Raise
   `pod_startup_timeout` if node creation takes longer than the default 300 seconds.
 - gVisor adds overhead to system calls and does not support every pod feature. See
@@ -322,9 +322,9 @@ An executor can also be set on a single node with `@kanode(executor=...)`.
 
 | Example | What it shows |
 | --- | --- |
-| [`examples/quickstart/`](examples/quickstart/) | One function node and one Gemini agent, each in its own worker. No extra options. Start here. |
-| [`examples/gke-sandbox/`](examples/gke-sandbox/) | A code interpreter: Gemini writes Python, and a single-use [GKE Sandbox](#sandboxing-nodes-with-gke-sandbox) pod with no credentials and no network runs it. |
-| [`examples/swarm/`](examples/swarm/) | A dynamic agent swarm: a planner picks specialist agents per request, and `ctx.run_node` runs each one in its own worker. |
+| [`examples/quickstart/`](https://github.com/benmizrahi/adk-kanode/tree/main/examples/quickstart/) | One function node and one Gemini agent, each in its own worker. No extra options. Start here. |
+| [`examples/gke-sandbox/`](https://github.com/benmizrahi/adk-kanode/tree/main/examples/gke-sandbox/) | A code interpreter: Gemini writes Python, and a single-use [GKE Sandbox](#sandboxing-nodes-with-gke-sandbox) pod with no credentials and no network runs it. |
+| [`examples/swarm/`](https://github.com/benmizrahi/adk-kanode/tree/main/examples/swarm/) | A dynamic agent swarm: a planner picks specialist agents per request, and `ctx.run_node` runs each one in its own worker. |
 
 The quickstart is one small file:
 
@@ -353,7 +353,7 @@ docker push "$ADK_K8S_IMAGE"
 envsubst < examples/k8s.yaml | kubectl apply -f -
 ```
 
-[`examples/k8s.yaml`](examples/k8s.yaml) creates the ServiceAccounts, the RBAC role,
+[`examples/k8s.yaml`](https://github.com/benmizrahi/adk-kanode/blob/main/examples/k8s.yaml) creates the ServiceAccounts, the RBAC role,
 and an `adk web` Deployment exposed through a `LoadBalancer` Service.
 
 The sandbox example changes one node of its workflow:
@@ -382,23 +382,23 @@ uv run pytest    # run the tests
 
 | Path | Contents |
 | --- | --- |
-| [`src/adk_kanode/node.py`](src/adk_kanode/node.py) | `K8sNode` and the `@kanode` / `@k8s_node` decorator |
-| [`src/adk_kanode/plugin.py`](src/adk_kanode/plugin.py) | `K8sPlugin` |
-| [`src/adk_kanode/config.py`](src/adk_kanode/config.py) | `K8sConfig` and environment variable handling |
-| [`src/adk_kanode/extractor.py`](src/adk_kanode/extractor.py) | Source extraction for wrapped nodes |
-| [`src/adk_kanode/executor.py`](src/adk_kanode/executor.py) | Pod, subprocess and in-process executors |
-| [`src/adk_kanode/deployment_executor.py`](src/adk_kanode/deployment_executor.py) | Warm Deployment executor |
-| [`examples/`](examples/) | Quickstart, GKE Sandbox and agent swarm examples, Dockerfile and manifests |
+| [`src/adk_kanode/node.py`](https://github.com/benmizrahi/adk-kanode/blob/main/src/adk_kanode/node.py) | `K8sNode` and the `@kanode` / `@k8s_node` decorator |
+| [`src/adk_kanode/plugin.py`](https://github.com/benmizrahi/adk-kanode/blob/main/src/adk_kanode/plugin.py) | `K8sPlugin` |
+| [`src/adk_kanode/config.py`](https://github.com/benmizrahi/adk-kanode/blob/main/src/adk_kanode/config.py) | `K8sConfig` and environment variable handling |
+| [`src/adk_kanode/extractor.py`](https://github.com/benmizrahi/adk-kanode/blob/main/src/adk_kanode/extractor.py) | Source extraction for wrapped nodes |
+| [`src/adk_kanode/executor.py`](https://github.com/benmizrahi/adk-kanode/blob/main/src/adk_kanode/executor.py) | Pod, subprocess and in-process executors |
+| [`src/adk_kanode/deployment_executor.py`](https://github.com/benmizrahi/adk-kanode/blob/main/src/adk_kanode/deployment_executor.py) | Warm Deployment executor |
+| [`examples/`](https://github.com/benmizrahi/adk-kanode/tree/main/examples/) | Quickstart, GKE Sandbox and agent swarm examples, Dockerfile and manifests |
 
 ## Contributing
 
-Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the
+Issues and pull requests are welcome. See [CONTRIBUTING.md](https://github.com/benmizrahi/adk-kanode/blob/main/CONTRIBUTING.md) for the
 development setup, or open an issue at
 <https://github.com/benmizrahi/adk-kanode/issues>.
 
 ## License
 
-Apache License 2.0. See [LICENSE](LICENSE).
+Apache License 2.0. See [LICENSE](https://github.com/benmizrahi/adk-kanode/blob/main/LICENSE).
 
 ## Disclaimer
 

@@ -1,0 +1,40 @@
+name: Publish to PyPI
+
+# Runs when a GitHub release is published. Uses PyPI trusted publishing, so no
+# token is stored in the repository. One-time setup on PyPI:
+#   pypi.org > Account > Publishing > add a pending publisher with
+#   project "adk-kanode", owner "benmizrahi", repository "adk-kanode",
+#   workflow "publish.yml", environment "pypi".
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v6
+      - run: uv build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

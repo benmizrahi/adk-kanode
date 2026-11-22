@@ -12,6 +12,9 @@ from pydantic import Field
 from pydantic import field_validator
 
 _DNS_LABEL_RE = re.compile(r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$")
+_DNS_SUBDOMAIN_RE = re.compile(
+    r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$"
+)
 _ENV_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
@@ -97,6 +100,15 @@ class K8sConfig(BaseModel):
         description=(
             "Kubernetes ServiceAccount name "
             "(env: ADK_K8S_SERVICE_ACCOUNT or K8S_SERVICE_ACCOUNT)."
+        ),
+    )
+    runtime_class_name: str | None = Field(
+        default_factory=lambda: _env_first(
+            "ADK_K8S_RUNTIME_CLASS_NAME", "K8S_RUNTIME_CLASS_NAME"
+        ),
+        description=(
+            "Kubernetes RuntimeClass name, e.g. 'gvisor' for GKE Sandbox "
+            "(env: ADK_K8S_RUNTIME_CLASS_NAME or K8S_RUNTIME_CLASS_NAME)."
         ),
     )
     cpu_request: str | None = Field(
@@ -255,6 +267,18 @@ class K8sConfig(BaseModel):
     def _validate_service_account(cls, v: str | None) -> str | None:
         if v is not None and (not v or len(v) > 253):
             raise ValueError(f"Invalid Kubernetes service_account_name {v!r}.")
+        return v
+
+    @field_validator("runtime_class_name")
+    @classmethod
+    def _validate_runtime_class_name(cls, v: str | None) -> str | None:
+        if v is not None and (
+            not v or len(v) > 253 or not _DNS_SUBDOMAIN_RE.match(v)
+        ):
+            raise ValueError(
+                f"Invalid Kubernetes runtime_class_name {v!r}: "
+                "must be a valid RFC-1123 DNS subdomain."
+            )
         return v
 
     @field_validator("env")

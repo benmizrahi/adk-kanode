@@ -256,3 +256,23 @@ def test_worker_refuses_to_start_without_token():
     exec(build_worker_bootstrap_script(), namespace)  # noqa: S102 - our own script
     with pytest.raises(RuntimeError):
         namespace["build_app"]("e30=", "hash", "")
+
+
+@pytest.mark.asyncio
+async def test_deployment_mode_sets_and_rolls_runtime_class_name():
+    """runtime_class_name is applied to the Deployment pod template and rolls on change."""
+    cluster = FakeCluster()
+    plugin, _ = make_plugin(cluster)
+    plugin.config = plugin.config.model_copy(update={"runtime_class_name": "gvisor"})
+
+    assert (await run_workflow(shout_node, plugin, "hello"))[-1] == "HELLO"
+    deployment = cluster.deployments["shout-node"]
+    assert deployment.spec.template.spec.runtime_class_name == "gvisor"
+    assert cluster.writes == ["create_deployment"]
+
+    plugin.config = plugin.config.model_copy(update={"runtime_class_name": "kata"})
+    assert (await run_workflow(shout_node, plugin, "world"))[-1] == "WORLD"
+    deployment = cluster.deployments["shout-node"]
+    assert deployment.spec.template.spec.runtime_class_name == "kata"
+    assert cluster.writes == ["create_deployment", "replace_deployment"]
+

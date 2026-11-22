@@ -42,7 +42,11 @@ class IncidentReport(BaseModel):
     latency_samples: int
 
 
-@kanode(mode="pod")
+@kanode(
+    mode="pod",
+    runtime_class_name="gvisor",
+    node_selector={"cloud.google.com/compute-class": "sandbox-gvisor-class"},
+)
 def parse_logs_input(node_input: str) -> Event:
     """Parses raw newline-delimited log entries from the user prompt."""
     lines = [line.strip() for line in node_input.strip().splitlines() if line.strip()]
@@ -52,7 +56,11 @@ def parse_logs_input(node_input: str) -> Event:
     )
 
 
-@kanode
+@kanode(
+    mode="pod",
+    runtime_class_name="gvisor",
+    node_selector={"cloud.google.com/compute-class": "sandbox-gvisor-class"},
+)
 def analyze_error_rates(node_input: list[str]) -> Event:
     """Runs in a dedicated GKE pod to count log levels and extract error messages."""
     levels: Counter[str] = Counter()
@@ -79,7 +87,11 @@ def analyze_error_rates(node_input: list[str]) -> Event:
     )
 
 
-@kanode
+@kanode(
+    mode="pod",
+    runtime_class_name="gvisor",
+    node_selector={"cloud.google.com/compute-class": "sandbox-gvisor-class"},
+)
 def analyze_latency(node_input: list[str]) -> Event:
     """Runs in a parallel GKE pod to extract `<N>ms` latency values and compute stats."""
     latencies: list[float] = []
@@ -105,7 +117,11 @@ def analyze_latency(node_input: list[str]) -> Event:
     )
 
 
-@kanode
+@kanode(
+    mode="pod",
+    runtime_class_name="gvisor",
+    node_selector={"cloud.google.com/compute-class": "sandbox-gvisor-class"},
+)
 def build_incident_report(
     node_input: dict[str, Any], total_lines: int = 0
 ) -> Event:

@@ -8,16 +8,19 @@ WORKDIR /app
 RUN adduser --disabled-password --gecos "" --uid 10001 appuser
 
 # Copy dependency manifests and plugin source code
-COPY pyproject.toml uv.lock README.md /app/
-COPY src/ /app/src/
+COPY --chown=appuser:appuser pyproject.toml uv.lock README.md /app/
+COPY --chown=appuser:appuser src/ /app/src/
 
 # Run uv sync as root during build so airlock-proxy (127.0.0.1:999) authorizes the local socket UID.
 # --compile-bytecode pre-builds .pyc files: appuser cannot write them at runtime, so without it
 # every worker start would recompile google-adk from source.
-RUN uv sync --frozen --no-dev --compile-bytecode
+# Ensure /app/src is world-readable regardless of host umask (e.g. 0027 -> 0750/0640).
+RUN uv sync --frozen --no-dev --compile-bytecode \
+    && chmod -R a+rX /app/src
 
 # Copy the example agent into /app/agents/example so `adk web /app/agents` discovers it
 COPY --chown=appuser:appuser example/ /app/agents/example/
+RUN chmod -R a+rX /app/agents
 
 USER appuser
 

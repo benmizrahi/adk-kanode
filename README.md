@@ -174,6 +174,7 @@ def call_api(node_input: str): ...
 | `image` | `ADK_K8S_IMAGE` | `python:3.12-slim` | Container image that runs the node |
 | `namespace` | `ADK_K8S_NAMESPACE` | `default` | Namespace for workers |
 | `service_account_name` | `ADK_K8S_SERVICE_ACCOUNT` | – | ServiceAccount for workers |
+| `runtime_class_name` | `ADK_K8S_RUNTIME_CLASS_NAME` | – | Kubernetes RuntimeClass name (e.g. `gvisor`) |
 | `mode` | `ADK_K8S_MODE` | `deployment` | `deployment` or `pod` |
 | `replicas` | `ADK_K8S_REPLICAS` | `1` | Warm replicas in deployment mode |
 | `cpu_request` / `cpu_limit` | `ADK_K8S_CPU_REQUEST` / `ADK_K8S_CPU_LIMIT` | – | CPU resources |
@@ -234,7 +235,7 @@ export ADK_K8S_NAMESPACE="default"
 export GOOGLE_CLOUD_PROJECT="<PROJECT_ID>"
 export GOOGLE_CLOUD_LOCATION="<LOCATION>"
 
-docker build -f example/Dockerfile -t "$ADK_K8S_IMAGE" .
+docker build --network=host -f example/Dockerfile -t "$ADK_K8S_IMAGE" .
 docker push "$ADK_K8S_IMAGE"
 envsubst < example/k8s.yaml | kubectl apply -f -
 ```

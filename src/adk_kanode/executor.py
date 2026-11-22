@@ -197,6 +197,7 @@ class K8sPodExecutor(PodExecutor):
             containers=[container],
             restart_policy="Never",
             service_account_name=config.service_account_name,
+            runtime_class_name=config.runtime_class_name,
             node_selector=config.node_selector or None,
             image_pull_secrets=image_pull_secrets,
         )

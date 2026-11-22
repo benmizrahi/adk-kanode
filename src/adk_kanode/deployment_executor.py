@@ -238,6 +238,7 @@ class K8sDeploymentExecutor(PodExecutor):
                     spec=client.V1PodSpec(
                         containers=[container],
                         service_account_name=config.service_account_name,
+                        runtime_class_name=config.runtime_class_name,
                         node_selector=config.node_selector or None,
                         image_pull_secrets=[
                             client.V1LocalObjectReference(name=s)

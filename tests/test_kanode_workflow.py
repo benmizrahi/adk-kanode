@@ -350,6 +350,7 @@ def test_k8s_config_from_environment_variables(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("ADK_K8S_IMAGE", "us-docker.pkg.dev/env-proj/adk/env-worker:v2")
     monkeypatch.setenv("ADK_K8S_NAMESPACE", "env-namespace")
     monkeypatch.setenv("ADK_K8S_SERVICE_ACCOUNT", "env-sa")
+    monkeypatch.setenv("ADK_K8S_RUNTIME_CLASS_NAME", "gvisor")
     monkeypatch.setenv("ADK_K8S_CPU_REQUEST", "500m")
     monkeypatch.setenv("ADK_K8S_MEMORY_LIMIT", "1Gi")
     monkeypatch.setenv("ADK_K8S_CLEANUP_POD", "false")
@@ -358,7 +359,47 @@ def test_k8s_config_from_environment_variables(monkeypatch: pytest.MonkeyPatch):
     assert plugin.config.image == "us-docker.pkg.dev/env-proj/adk/env-worker:v2"
     assert plugin.config.namespace == "env-namespace"
     assert plugin.config.service_account_name == "env-sa"
+    assert plugin.config.runtime_class_name == "gvisor"
     assert plugin.config.cpu_request == "500m"
     assert plugin.config.memory_limit == "1Gi"
     assert plugin.config.cleanup_pod is False
+
+
+def test_k8s_pod_manifest_sets_runtime_class_name_and_validates():
+    """Verifies runtime_class_name is validated, merged, and written to V1PodSpec."""
+    from adk_kanode import PodExecutionPayload
+
+    @kanode(
+        mode="pod",
+        runtime_class_name="gvisor",
+        node_selector={"cloud.google.com/compute-class": "sandbox-gvisor-class"},
+    )
+    def sandboxed_node(node_input: str) -> str:
+        return node_input
+
+    plugin = K8sPlugin(runtime_class_name="kata")
+    merged = plugin.config.merge_with(sandboxed_node.k8s_config)
+    assert merged.runtime_class_name == "gvisor"
+    assert merged.node_selector == {
+        "cloud.google.com/compute-class": "sandbox-gvisor-class"
+    }
+
+    payload = PodExecutionPayload(
+        node_name=sandboxed_node.name,
+        node_input="hi",
+        extracted=sandboxed_node.extracted,
+    )
+    pod = K8sPodExecutor.build_pod_manifest(payload, merged)
+    assert pod.spec.runtime_class_name == "gvisor"
+    assert pod.spec.node_selector == {
+        "cloud.google.com/compute-class": "sandbox-gvisor-class"
+    }
+
+    # Inheriting runtime_class_name from plugin when not overridden on the node
+    inherited = plugin.config.merge_with(task_C_node.k8s_config)
+    assert inherited.runtime_class_name == "kata"
+
+    with pytest.raises(ValueError, match="runtime_class_name"):
+        K8sConfig(runtime_class_name="INVALID_UPPER")
+
 

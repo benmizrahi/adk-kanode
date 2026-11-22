@@ -92,6 +92,10 @@ spec:
               value: "true"
             - name: ADK_K8S_IMAGE
               value: "${ADK_K8S_IMAGE}"
+            # Workers pull the image on every start. Without this they reuse the copy
+            # cached on their node, so a rebuilt image pushed under the same tag is ignored.
+            - name: ADK_K8S_IMAGE_PULL_POLICY
+              value: "Always"
             - name: ADK_K8S_NAMESPACE
               valueFrom:
                 fieldRef:

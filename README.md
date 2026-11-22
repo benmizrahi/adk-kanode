@@ -325,7 +325,7 @@ An executor can also be set on a single node with `@kanode(executor=...)`.
 | --- | --- |
 | [`examples/quickstart/`](https://github.com/benmizrahi/adk-kanode/tree/main/examples/quickstart/) | One function node and one Gemini agent, each in its own worker. No extra options. Start here. |
 | [`examples/gke-sandbox/`](https://github.com/benmizrahi/adk-kanode/tree/main/examples/gke-sandbox/) | A code interpreter: Gemini writes Python, and a single-use [GKE Sandbox](#sandboxing-nodes-with-gke-sandbox) pod with no credentials and no network runs it. |
-| [`examples/swarm/`](https://github.com/benmizrahi/adk-kanode/tree/main/examples/swarm/) | A dynamic agent swarm: a planner picks specialist agents per request, and `ctx.run_node` runs each one in its own worker. |
+| [`examples/swarm/`](https://github.com/benmizrahi/adk-kanode/tree/main/examples/swarm/) | A dynamic agent swarm: a planner picks investigator agents with Google Search per request, and `ctx.run_node` runs each one in its own worker. The result is saved as a report artifact. |
 
 The quickstart is one small file:
 
@@ -364,13 +364,25 @@ The sandbox example changes one node of its workflow:
 def run_in_sandbox(node_input: dict) -> Event: ...
 ```
 
-The swarm example starts agents that are not in the graph, chosen at runtime:
+The swarm example is a research team. A planner agent splits a question into
+assignments, and each assignment goes to an investigator agent that searches
+Google. The investigators are not in the graph: they are chosen at runtime and
+run side by side, each in its own worker:
 
 ```python
-reports = await asyncio.gather(
-    *(ctx.run_node(SPECIALISTS[a.specialist], a.task) for a in assignments)
+INVESTIGATORS = {
+    name: kanode(Agent(name=name, model=MODEL, tools=[google_search], instruction=...))
+    for name in ROSTER
+}
+
+findings = await asyncio.gather(
+    *(ctx.run_node(INVESTIGATORS[a.investigator], a.task) for a in assignments)
 )
 ```
+
+A lead agent turns the findings into one brief, and the last node saves the
+brief, the findings with their sources, and the timings as a Markdown artifact.
+Two environment variables raise the fan-out to dozens of pods per request.
 
 Each example's README has the full walkthrough.
 

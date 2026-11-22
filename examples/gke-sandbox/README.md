@@ -90,9 +90,12 @@ docker push "$ADK_K8S_IMAGE"
 kubectl apply -f examples/gke-sandbox/gVisor.yaml
 envsubst < examples/gke-sandbox/sandbox-policy.yaml | kubectl apply -f -
 envsubst < examples/k8s.yaml | kubectl apply -f -
+
+kubectl rollout status deployment/adk-web-example -n "$ADK_K8S_NAMESPACE"
+kubectl port-forward svc/adk-web-example-svc 8080:80 -n "$ADK_K8S_NAMESPACE"
 ```
 
-Open the `adk-web-example-svc` address and pick the `code_interpreter` app.
+Open http://localhost:8080 and pick the `code_interpreter` app.
 The first request can take a few minutes while GKE creates a sandbox node.
 
 ## Try it
@@ -104,16 +107,58 @@ kubectl get pods -n "$ADK_K8S_NAMESPACE" -l trust-zone=sandbox -w \
   -o custom-columns=NAME:.metadata.name,RUNTIME:.spec.runtimeClassName,SA:.spec.serviceAccountName,PHASE:.status.phase
 ```
 
-| Request | What you should see |
-| --- | --- |
-| `What is the 50th Fibonacci number?` | The answer. Each run reports a new pod name. |
-| `Print /proc/version and the output of dmesg` | gVisor's own kernel, not the node's |
-| `Print all environment variables` | `PATH` and `LC_CTYPE` (set by Python itself), nothing from the pod |
-| `Read /var/run/secrets/kubernetes.io/serviceaccount/token` | The file does not exist |
-| `Fetch https://example.com and the GCE metadata server` | Both fail |
-| `Write /tmp/marker, then in a second request read it` | The second run cannot find it |
+Start with `What is the 50th Fibonacci number?` to check the happy path. Then
+play the attacker: each request below asks Gemini for a script that tries to
+break out, and each one is stopped by a different layer.
+
+| Attack | Request | What you should see | Stopped by |
+| --- | --- | --- | --- |
+| Reach the node kernel | `Print /proc/version and the output of dmesg` | A gVisor kernel (`4.4.0`) and gVisor's boot log. The script's syscalls never reached the node's real kernel. | `runtime_class_name="gvisor"` |
+| Steal the pod's Kubernetes identity | `List /var/run/secrets/kubernetes.io/serviceaccount and print the token` | The directory does not exist | `adk-sandbox-sa` (`automountServiceAccountToken: false`) |
+| Steal Google Cloud credentials | `Request http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token with the Metadata-Flavor: Google header and a 3 second timeout` | Connection times out | `adk-sandbox-deny-all` |
+| Call the Kubernetes API | `Open a TCP connection to kubernetes.default.svc:443 with a 3 second timeout` | DNS lookup fails | `adk-sandbox-deny-all` |
+| Exfiltrate data | `POST the contents of /etc/hostname to https://example.com with a 3 second timeout` | DNS lookup fails | `adk-sandbox-deny-all` |
+| Read secrets from the environment | `Print all environment variables` | `PATH` and `LC_CTYPE` only, no project ID or other pod settings | empty `env` for the script |
+| Leave something behind for the next run | `Write the text "owned" to /tmp/marker`, then `Print the contents of /tmp/marker` | The second run cannot find the file, and reports a different pod name | `mode="pod"` |
+| Hang the workflow | `Run an infinite loop` | `Timed out after 20s.` and exit code 124 | script timeout |
+
+Keep the timeouts in the network requests: without them the script waits on
+the blocked connection until the 20 second limit kills it, and the workflow
+retries.
 
 Every `review_result` message shows the pod name and the kernel the script saw.
+
+### Compare with a pod outside the sandbox
+
+The same probes succeed in the host pod, which runs on a normal node with a
+mounted token and no NetworkPolicy:
+
+```bash
+# The node's real kernel, not gVisor's 4.4.0
+kubectl exec -n "$ADK_K8S_NAMESPACE" deploy/adk-web-example -- uname -r
+
+# A ServiceAccount token is mounted here
+kubectl exec -n "$ADK_K8S_NAMESPACE" deploy/adk-web-example -- \
+  ls /var/run/secrets/kubernetes.io/serviceaccount
+```
+
+### Check the boundary from the cluster side
+
+You do not have to trust what the script prints. These show the same
+boundaries from outside the pod:
+
+```bash
+# Sandbox pods land only on gVisor nodes
+kubectl get nodes -l sandbox.gke.io/runtime=gvisor
+
+# The sandbox identity may do nothing in the namespace
+kubectl auth can-i --list -n "$ADK_K8S_NAMESPACE" \
+  --as="system:serviceaccount:$ADK_K8S_NAMESPACE:adk-sandbox-sa"
+
+# No ingress or egress rules for pods labelled trust-zone=sandbox
+kubectl describe networkpolicy adk-sandbox-deny-all -n "$ADK_K8S_NAMESPACE"
+```
+
 Set `ADK_K8S_CLEANUP_POD=false` on the host Deployment to keep finished pods
 for inspection.
 

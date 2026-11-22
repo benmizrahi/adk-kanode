@@ -101,7 +101,7 @@ More in the
 | --- | --- |
 | [Quickstart](https://github.com/benmizrahi/adk-kanode/tree/main/examples/quickstart) | One function node and one Gemini agent, each in its own worker. |
 | [Code interpreter on GKE Sandbox](https://github.com/benmizrahi/adk-kanode/tree/main/examples/gke-sandbox) | Gemini writes Python, and a single-use gVisor pod with no credentials and no network runs it. |
-| [Dynamic agent swarm](https://github.com/benmizrahi/adk-kanode/tree/main/examples/swarm) | A planner picks specialist agents per request, and `ctx.run_node` runs each one in its own worker. |
+| [Dynamic agent swarm](https://github.com/benmizrahi/adk-kanode/tree/main/examples/swarm) | A planner picks investigator agents with Google Search per request, and `ctx.run_node` runs each one in its own worker. |
 
 ## Documentation
 

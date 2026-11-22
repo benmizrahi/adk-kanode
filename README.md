@@ -26,6 +26,16 @@ def analyze(node_input: list[str]) -> Event:
     return Event(output={"lines": len(node_input)})
 ```
 
+<div align="center">
+
+![A swarm request on Kubernetes: a planner worker splits the question, twelve investigator pods start, run and are deleted, a lead worker writes the brief, and the report artifact is saved](https://raw.githubusercontent.com/benmizrahi/adk-kanode/main/docs/assets/swarm-demo.gif)
+
+*One request to the [swarm example](https://github.com/benmizrahi/adk-kanode/tree/main/examples/swarm/): the
+agents stay on warm Deployments, and every investigator runs in its own pod that is
+deleted when it finishes. An illustration, not a recording.*
+
+</div>
+
 ## Contents
 
 - [Why adk-kanode](#why-adk-kanode)

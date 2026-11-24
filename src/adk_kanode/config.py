@@ -6,6 +6,8 @@ import os
 import re
 from typing import Literal
 
+from kubernetes.client import V1Volume
+from kubernetes.client import V1VolumeMount
 from pydantic import BaseModel
 from pydantic import ConfigDict
 from pydantic import Field
@@ -145,6 +147,14 @@ class K8sConfig(BaseModel):
             "Mapping of env var name to (k8s_secret_name, secret_key) for "
             "injecting sensitive values from Kubernetes Secrets."
         ),
+    )
+    volumes: list[V1Volume] = Field(
+        default_factory=list,
+        description="Additional Kubernetes volumes mounted into the worker pod.",
+    )
+    volume_mounts: list[V1VolumeMount] = Field(
+        default_factory=list,
+        description="Additional volume mounts for the worker container.",
     )
     labels: dict[str, str] = Field(
         default_factory=dict,

@@ -26,6 +26,8 @@ from google.adk.workflow.utils._workflow_hitl_utils import create_auth_request_e
 from google.adk.workflow.utils._workflow_hitl_utils import create_confirmation_request_input
 from google.adk.workflow.utils._workflow_hitl_utils import has_auth_credential
 from google.adk.workflow.utils._workflow_hitl_utils import process_auth_resume
+from kubernetes.client import V1Volume
+from kubernetes.client import V1VolumeMount
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import TypeAdapter
@@ -208,6 +210,8 @@ def k8s_node(
     memory_limit: str | None = None,
     env: dict[str, str] | None = None,
     secret_env: dict[str, tuple[str, str]] | None = None,
+    volumes: list[V1Volume] | None = None,
+    volume_mounts: list[V1VolumeMount] | None = None,
     labels: dict[str, str] | None = None,
     annotations: dict[str, str] | None = None,
     image_pull_policy: Literal["Always", "IfNotPresent", "Never"] | None = None,
@@ -251,6 +255,8 @@ def k8s_node(
     memory_limit: str | None = None,
     env: dict[str, str] | None = None,
     secret_env: dict[str, tuple[str, str]] | None = None,
+    volumes: list[V1Volume] | None = None,
+    volume_mounts: list[V1VolumeMount] | None = None,
     labels: dict[str, str] | None = None,
     annotations: dict[str, str] | None = None,
     image_pull_policy: Literal["Always", "IfNotPresent", "Never"] | None = None,
@@ -316,6 +322,8 @@ def k8s_node(
     memory_limit: str | None = None,
     env: dict[str, str] | None = None,
     secret_env: dict[str, tuple[str, str]] | None = None,
+    volumes: list[V1Volume] | None = None,
+    volume_mounts: list[V1VolumeMount] | None = None,
     labels: dict[str, str] | None = None,
     annotations: dict[str, str] | None = None,
     image_pull_policy: Literal["Always", "IfNotPresent", "Never"] | None = None,
@@ -376,6 +384,8 @@ def k8s_node(
             memory_limit=memory_limit,
             env=env,
             secret_env=secret_env,
+            volumes=volumes,
+            volume_mounts=volume_mounts,
             labels=labels,
             annotations=annotations,
             image_pull_policy=image_pull_policy,
@@ -426,6 +436,8 @@ def k8s_node(
             "memory_limit": memory_limit,
             "env": env,
             "secret_env": secret_env,
+            "volumes": volumes,
+            "volume_mounts": volume_mounts,
             "labels": labels,
             "annotations": annotations,
             "image_pull_policy": image_pull_policy,

@@ -5,6 +5,7 @@
 | [`quickstart/`](quickstart/) | One `@kanode` function node and one `kanode(...)` Gemini agent, each in its own worker | A Kubernetes cluster, Vertex AI |
 | [`gke-sandbox/`](gke-sandbox/) | A code interpreter: Gemini writes Python and a single-use GKE Sandbox (gVisor) pod runs it | GKE with node pool auto-creation and network policy, Vertex AI |
 | [`swarm/`](swarm/) | A dynamic agent swarm: a planner picks investigator agents with Google Search per request and `ctx.run_node` runs each in its own worker | A Kubernetes cluster, Vertex AI |
+| [`agent-substrate/`](agent-substrate/) | Three ADK-Kanode workflow workers handle memory reads, Gemini responses, and memory writes while an Agent Substrate Actor preserves state across suspension | GKE Standard 1.37+, Agent Substrate, Vertex AI |
 
 Start with the quickstart. All examples can also run locally through their tests,
 without a cluster.

@@ -1,0 +1,23 @@
+metadata:
+  atespace: ${SUBSTRATE_ATESPACE}
+  name: durable-memory
+workerSelector:
+  matchLabels:
+    workload: adk-kanode-memory
+containers:
+  - name: memory
+    image: ${MEMORY_ACTOR_IMAGE}
+    command:
+      - python
+      - -u
+      - /app/memory_actor.py
+    wakeupProbe:
+      httpGet:
+        path: /readyz
+        port: 80
+resources:
+  limits:
+    cpuMillicores: 250
+    memoryBytes: 268435456
+snapshotConfig:
+  preferredFidelity: SNAPSHOT_FIDELITY_MEMORY

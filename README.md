@@ -203,9 +203,10 @@ def call_api(node_input: str): ...
 | `kubeconfig_path` | `ADK_K8S_KUBECONFIG` / `KUBECONFIG` | – | Path to a kubeconfig file |
 | `context` | `ADK_K8S_CONTEXT` | – | kubeconfig context name |
 
-These options are set in code only: `env`, `secret_env`, `labels`, `annotations`
-and `node_selector`. Pass sensitive values through `secret_env`, which references
-Kubernetes Secrets, rather than `env`.
+These options are set in code only: `env`, `secret_env`, `volumes`,
+`volume_mounts`, `labels`, `annotations` and `node_selector`. Volumes and mounts
+use Kubernetes `V1Volume` and `V1VolumeMount` objects. Pass sensitive values
+through `secret_env`, which references Kubernetes Secrets, rather than `env`.
 
 Each `ADK_K8S_*` variable also accepts a `K8S_*` alias (for example `K8S_IMAGE`).
 
@@ -336,6 +337,7 @@ An executor can also be set on a single node with `@kanode(executor=...)`.
 | [`examples/quickstart/`](https://github.com/benmizrahi/adk-kanode/tree/main/examples/quickstart/) | One function node and one Gemini agent, each in its own worker. No extra options. Start here. |
 | [`examples/gke-sandbox/`](https://github.com/benmizrahi/adk-kanode/tree/main/examples/gke-sandbox/) | A code interpreter: Gemini writes Python, and a single-use [GKE Sandbox](#sandboxing-nodes-with-gke-sandbox) pod with no credentials and no network runs it. |
 | [`examples/swarm/`](https://github.com/benmizrahi/adk-kanode/tree/main/examples/swarm/) | A dynamic agent swarm: a planner picks investigator agents with Google Search per request, and `ctx.run_node` runs each one in its own worker. The result is saved as a report artifact. |
+| [`examples/agent-substrate/`](https://github.com/benmizrahi/adk-kanode/tree/main/examples/agent-substrate/) | ADK-Kanode runs the memory-read, Gemini answer and memory-write workflow nodes while an Agent Substrate Actor preserves conversation memory across suspension and resume on GKE. |
 
 The quickstart is one small file:
 

@@ -200,6 +200,7 @@ class K8sDeploymentExecutor(PodExecutor):
             image_pull_policy=config.image_pull_policy,
             command=["python3", "-u", "-c", build_worker_bootstrap_script()],
             env=env,
+            volume_mounts=config.volume_mounts or None,
             ports=[client.V1ContainerPort(container_port=WORKER_PORT, name="http")],
             readiness_probe=client.V1Probe(
                 http_get=client.V1HTTPGetAction(path="/healthz", port=WORKER_PORT),
@@ -240,6 +241,7 @@ class K8sDeploymentExecutor(PodExecutor):
                         service_account_name=config.service_account_name,
                         runtime_class_name=config.runtime_class_name,
                         node_selector=config.node_selector or None,
+                        volumes=config.volumes or None,
                         image_pull_secrets=[
                             client.V1LocalObjectReference(name=s)
                             for s in config.image_pull_secrets

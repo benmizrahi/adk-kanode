@@ -173,6 +173,7 @@ class K8sPodExecutor(PodExecutor):
             image_pull_policy=config.image_pull_policy,
             command=["python3", "-u", "-c", build_pod_bootstrap_script()],
             env=env_vars,
+            volume_mounts=config.volume_mounts or None,
             resources=resources,
             security_context=security_context,
         )
@@ -199,6 +200,7 @@ class K8sPodExecutor(PodExecutor):
             service_account_name=config.service_account_name,
             runtime_class_name=config.runtime_class_name,
             node_selector=config.node_selector or None,
+            volumes=config.volumes or None,
             image_pull_secrets=image_pull_secrets,
         )
 

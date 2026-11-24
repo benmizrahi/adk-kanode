@@ -403,3 +403,39 @@ def test_k8s_pod_manifest_sets_runtime_class_name_and_validates():
         K8sConfig(runtime_class_name="INVALID_UPPER")
 
 
+def test_worker_manifests_include_configured_volumes_and_mounts():
+    from adk_kanode import PodExecutionPayload
+    from adk_kanode.deployment_executor import K8sDeploymentExecutor
+    from kubernetes.client import V1EmptyDirVolumeSource
+    from kubernetes.client import V1Volume
+    from kubernetes.client import V1VolumeMount
+
+    config = K8sConfig(
+        volumes=[V1Volume(name="identity", empty_dir=V1EmptyDirVolumeSource())],
+        volume_mounts=[
+            V1VolumeMount(
+                name="identity", mount_path="/var/run/identity", read_only=True
+            )
+        ],
+    )
+    payload = PodExecutionPayload(
+        node_name=task_C_node.name,
+        node_input="hi",
+        extracted=task_C_node.extracted,
+    )
+
+    pod = K8sPodExecutor.build_pod_manifest(payload, config)
+    assert pod.spec.volumes[0].name == "identity"
+    assert pod.spec.containers[0].volume_mounts[0].mount_path == "/var/run/identity"
+
+    deployment, _service = K8sDeploymentExecutor.build_manifests(
+        task_C_node.extracted,
+        config,
+        name="task-c-node",
+        spec_hash="test-hash",
+    )
+    template = deployment.spec.template.spec
+    assert template.volumes[0].name == "identity"
+    assert template.containers[0].volume_mounts[0].mount_path == "/var/run/identity"
+
+

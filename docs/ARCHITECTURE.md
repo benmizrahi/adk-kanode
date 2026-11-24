@@ -291,6 +291,7 @@ For each call the effective config is `plugin.config.merge_with(node.k8s_config)
 - `env`, `secret_env`, `labels`, `annotations` and `node_selector` are merged
   key by key, with the node winning on conflicts.
 - `image_pull_secrets` from both are combined without duplicates.
+- `volumes` and `volume_mounts` are replaced by the node's values when set.
 - A field set on neither falls back to its environment variable, then its default.
 
 Without a registered `K8sPlugin`, the node's own config is used with a shared

@@ -105,6 +105,10 @@ spec:
             # "deployment" (warm worker per node, fast) or "pod" (fresh pod per call)
             - name: ADK_K8S_MODE
               value: "deployment"
+            - name: SUBSTRATE_ACTOR_ATESPACE
+              value: "${SUBSTRATE_ATESPACE}"
+            - name: SUBSTRATE_ACTOR_NAME
+              value: "${SUBSTRATE_ACTOR_NAME}"
             # Gemini via Vertex AI, for examples with LLM nodes (the example forwards these to its workers).
             # The worker authenticates with Workload Identity as adk-worker-sa.
             - name: GOOGLE_GENAI_USE_VERTEXAI
